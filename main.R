@@ -1,7 +1,6 @@
-source('serviceUtils.r')
+source('simulationService.r')
 source('statsService.r')
 source('validationService.r')
-
 # c - kapacita per node
 # numOfNodes - pocet nodov
 # lambda - lambda parameter nastvitelny pre generovanie zaciatkov hovorov podla exp rozdelenia
@@ -11,13 +10,15 @@ source('validationService.r')
 # confidenceInterval - ak je n>1, vygeneruje interval spolahlivosti (pomocou kvantilov), so spolahlivostou confidenceInterval udanu v rozmdedzi  (0-100)  v % , aky pomer hovorov bolo zamietnutych (priamych aj nepriamych)
 main <- function(c,numOfNodes,lambda,mu,delta,n,realTime,confidenceInterval){
   #validacia vstupnuch argumentov
-  validateArguments('main','c,lambda,mu,delta,n,realTime,confidenceInterval','numeric', 1,c,numOfNodes,lambda,mu,delta,n,realTime,confidenceInterval)
-  validateMinMaxVal('main','c,numOfNodes,lambda,mu,delta,n,realTime',1,NULL,c,numOfNodes,lambda,mu,delta,n,realTime)
+  validateArguments('main','realTime','logical', 1,realTime)
+  validateArguments('main','c,lambda,mu,delta,n,confidenceInterval','numeric', 1,c,numOfNodes,lambda,mu,delta,n,confidenceInterval)
+  validateMinMaxVal('main','c,n',1,NULL,c,n)
+  validateMinMaxVal('main','numOfNodes',2,NULL,numOfNodes)
   validateMinMaxVal('main','confidenceInterval', 0.01, 99.99,confidenceInterval)
   
   timeEventInterval<- generateTimeEventInterval(mu,lambda,delta)
   nodes <- initializeNodes(numOfNodes,c)
-  if(n ==1){
+  if(n==1){
     simulationResult <- startSimulation(timeEventInterval,nodes,delta,realTime)
     return(simulationResult)
   }
@@ -35,13 +36,13 @@ main <- function(c,numOfNodes,lambda,mu,delta,n,realTime,confidenceInterval){
 
 # Nastavenie argumentov na prevolavanie
 # ako rychlo sa maju vytvarat nove hovori (vyssie je rychlejsie generovanie)
-newCallFrequency <- 50
+newCallFrequency <- 20
 # ako dlho ma ptretrvavat hovor mensie je dlhsi hovor)
-lengthOfCall <- 1/50
+lengthOfCall <- 1/10
 # inicializacna dostupna kapacita medzi dvoma nodmi
-initCapacitytPerNode <- 100
+initCapacitytPerNode <- 10
 # aky cas v minutach chceme pozorovat
-observationTime <- 1
+observationTime <- 5
 #pocet nodov, s ktorymi chceme pracvoat (v zadani 5), tu je to volitelne
 numOfNodes <- 5
 # kolko simulacii, chceme sledovat ak je n>1 tak nam vypise aj interval spolahlivosti, ak chceme sledovat priebeh hovorov, tak iba v pripade n==1

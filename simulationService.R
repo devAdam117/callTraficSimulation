@@ -1,12 +1,20 @@
 source('callsGenService.r')
 source('nodeService.r')
 
+
+
 startSimulation <- function(callEventInterval,nodes,delta,realTime){
+  #minuty na sekundy
   delta <- delta * 60
+  # kolko je celkovych call requestov (lepsie cez vlastnu metodu ako nascitavanie)
   callRequest <- 0
+  # kolko z nich sa zrusilo direct/undirect call
   declinedCallRequest <- 0
+  # pocet init nodov
   numOfNodes <- sqrt(length(nodes))
+  # sluzi iba v pripade, ked chceme realne zobrazenie nodov v casovom horizonte
   timeStampOfLastCallEvent <- 0
+  nodesHistory <- c()
   for(i in 1:length(callEventInterval)){
     indexOfCallEvent <- unlist(callEventInterval[i])[1]
     timeStampOfCallEvent <- unlist(callEventInterval[i])[2]
@@ -15,9 +23,6 @@ startSimulation <- function(callEventInterval,nodes,delta,realTime){
       Sys.sleep(timeStampOfCallEvent-timeStampOfLastCallEvent)
       timeStampOfLastCallEvent <- timeStampOfCallEvent
       print(paste('Zatial ubehnuty cas: ',floor(timeStampOfLastCallEvent*100)/100, 'sek'))
-    }
-    if(!realTime){
-      print(paste((i/length(callEventInterval))*100,' %'))
     }
     if(timeStampOfCallEvent>delta){
       break
@@ -39,25 +44,29 @@ startSimulation <- function(callEventInterval,nodes,delta,realTime){
       if(connectionResult$declinedNum>1){
         callRequest <- callRequest + connectionResult$declinedNum - 1
       }
-      indexOfCorrespondingEndCall <- privateGetIndexOfEndElementByStartIndex(callEventInterval,indexOfCallEvent)
-      callEventInterval[indexOfCorrespondingEndCall] <- list(append(unlist(callEventInterval[indexOfCorrespondingEndCall]),c(position1=c(connectionResult$position1[1],connectionResult$position1[2]),position2=c(connectionResult$position2[1],connectionResult$position2[2]))))
+      
+      nodesHistory <- c(append(nodesHistory,list(c(indexOfCallEvent,position1=c(connectionResult$position1[1],connectionResult$position1[2]),position2=c(connectionResult$position2[1],connectionResult$position2[2])))))
+      
+      #indexOfCorrespondingEndCall <- privateGetIndexOfEndElementByStartIndex(callEventInterval,indexOfCallEvent)
+      #callEventInterval[indexOfCorrespondingEndCall] <- list(append(unlist(callEventInterval[indexOfCorrespondingEndCall]),c(position1=c(connectionResult$position1[1],connectionResult$position1[2]),position2=c(connectionResult$position2[1],connectionResult$position2[2]))))
       next
     }
     if(names(timeStampOfCallEvent) == 'endTime'){
-      if(length(callEventInterval) < 4){
+      if(length(unlist(nodesHistory[indexOfCallEvent])) < 2){
         next
       }
-      row1 <- unlist(callEventInterval[i])[3]
-      column1 <- unlist(callEventInterval[i])[4]
+      row1 <- unlist(nodesHistory[indexOfCallEvent])[2]
+      column1 <- unlist(nodesHistory[indexOfCallEvent])[3]
       nodes[row1,column1] <- nodes[row1,column1] + 1
       
-      if(length(callEventInterval) < 6){
+      if(length(unlist(nodesHistory[indexOfCallEvent])) < 4){
         next
       }
-      row2 <- unlist(callEventInterval[i])[5]
-      column2 <- unlist(callEventInterval[i])[6]
+      row2 <- unlist(nodesHistory[indexOfCallEvent])[4]
+      column2 <- unlist(nodesHistory[indexOfCallEvent])[5]
       nodes[row2,column2] <- nodes[row2,column2] + 1
     }
+      
   }
   return(list(nodes=nodes,totalNumOfCallRequests=callRequest,declinedNumOfCallRequest=declinedCallRequest, totalNumOfDirectCallRequest=callRequest))
 }
@@ -72,11 +81,13 @@ privateGetIndexOfEndElementByStartIndex <- function(vector,index){
     if(idx!=index){
       next
     }
-    if(name!='endTime'){
-      next
-    }
+    
     return(eventIndex)
   }
+}
+
+privateRemoveFromVectorByIdx <- function (vector,index){
+  return(vector[-index])
 }
 
 

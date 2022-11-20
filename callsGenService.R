@@ -3,7 +3,7 @@
 # lambda - parameter, ktory nadstavi konkretne exp. rozdelenie podla, ktoreho sa generuju data na casovu os (ako casto sa hovori nezavisle od seba tvoria)
 # timeStamps=NULL - sa pri inite nevyplna, sluzi ako cumulative zaznam na zapisovanie casov na spominanej osy
 # TEST 
-# generateStartCallInterval(10,3) 
+# privateGenerateStartCallInterval(10,3) 
 privateGenerateStartCallInterval <- function(totalTime,lambda, timeStamps) {
   timeStamps <- NULL
   newTimeStamp <- 0
@@ -26,10 +26,10 @@ privateGenerateStartCallInterval <- function(totalTime,lambda, timeStamps) {
 }
 
 # k uz vygenerovanym zaciatkom callom vygeneruje ich koniec na novu casovu os s tymi istymi typmi udajov
-# startTimeStamps - je output metody generateStartCallInterval
+# startTimeStamps - je output metody privateGenerateStartCallInterval
 # mu - parameter, ktory nadstavi konkretne exp. rozdelenie podla, ktoreho sa generuju data na casovu os (dlzka daneho hovoru)
 # TEST 
-# generateEndCallInterval(generateStartCallInterval(10,3) , 1/10)
+# privateGenerateEndCallInterval(privateGenerateStartCallInterval(10,3) , 1/10)
 privateGenerateEndCallInterval <- function(startTimeStamps,mu){
   endTimeStamps <- c()
   for(index in 1:length(startTimeStamps)){
